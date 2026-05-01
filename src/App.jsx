@@ -10,28 +10,6 @@ import './App.css'
 
 Modal.setAppElement('#root')
 
-const DEFAULT_BALANCE = 5000
-const SESSION_BOOTSTRAP_KEY = 'expense-tracker-bootstrapped'
-
-function shouldHydrateFromStorage() {
-    if (typeof window === 'undefined') return false
-
-    const navType =
-        window.performance?.getEntriesByType?.('navigation')?.[0]?.type ?? 'navigate'
-    const hasBootstrapped =
-        window.sessionStorage.getItem(SESSION_BOOTSTRAP_KEY) === 'true'
-
-    if (navType === 'reload' && hasBootstrapped) {
-        return true
-    }
-
-    // Fresh app entry should not inherit storage from a previous Cypress test.
-    window.localStorage.removeItem('walletBalance')
-    window.localStorage.removeItem('expenses')
-    window.sessionStorage.setItem(SESSION_BOOTSTRAP_KEY, 'true')
-    return false
-}
-
 const MODAL_STYLES = {
     overlay: {
         backgroundColor: 'rgba(0,0,0,0.55)',
@@ -54,32 +32,14 @@ const MODAL_STYLES = {
 }
 
 export default function App() {
-    const [hydrateFromStorage] = useState(() => shouldHydrateFromStorage())
-
     const [balance, setBalance] = useState(() => {
         const saved = localStorage.getItem('walletBalance')
-
-        if (hydrateFromStorage && saved !== null) {
-            const parsed = parseFloat(saved)
-            return Number.isFinite(parsed) ? parsed : DEFAULT_BALANCE
-        }
-
-        return DEFAULT_BALANCE
+        return saved ? parseFloat(saved) : 5000
     })
 
     const [expenses, setExpenses] = useState(() => {
         const saved = localStorage.getItem('expenses')
-
-        if (hydrateFromStorage && saved !== null) {
-            try {
-                const parsed = JSON.parse(saved)
-                return Array.isArray(parsed) ? parsed : []
-            } catch {
-                return []
-            }
-        }
-
-        return []
+        return saved ? JSON.parse(saved) : []
     })
 
     const [incomeModalOpen, setIncomeModalOpen] = useState(false)
@@ -87,7 +47,7 @@ export default function App() {
     const [editingExpense, setEditingExpense] = useState(null)
 
     useEffect(() => {
-        localStorage.setItem('walletBalance', String(balance))
+        localStorage.setItem('walletBalance', balance)
     }, [balance])
 
     useEffect(() => {
@@ -136,10 +96,7 @@ export default function App() {
                     balance={balance}
                     totalExpenses={totalExpenses}
                     onAddIncome={() => setIncomeModalOpen(true)}
-                    onAddExpense={() => {
-                        setEditingExpense(null)
-                        setExpenseModalOpen(true)
-                    }}
+                    onAddExpense={() => { setEditingExpense(null); setExpenseModalOpen(true) }}
                 />
                 <ExpenseSummary expenses={expenses} />
             </div>
@@ -153,6 +110,7 @@ export default function App() {
                 <ExpenseTrends expenses={expenses} />
             </div>
 
+            {/* Income Modal */}
             <Modal
                 isOpen={incomeModalOpen}
                 onRequestClose={() => setIncomeModalOpen(false)}
@@ -164,21 +122,16 @@ export default function App() {
                 />
             </Modal>
 
+            {/* Expense Modal */}
             <Modal
                 isOpen={expenseModalOpen}
-                onRequestClose={() => {
-                    setExpenseModalOpen(false)
-                    setEditingExpense(null)
-                }}
+                onRequestClose={() => { setExpenseModalOpen(false); setEditingExpense(null) }}
                 style={MODAL_STYLES}
             >
                 <ExpenseForm
                     onAdd={handleAddExpense}
                     onEdit={handleEditExpense}
-                    onCancel={() => {
-                        setExpenseModalOpen(false)
-                        setEditingExpense(null)
-                    }}
+                    onCancel={() => { setExpenseModalOpen(false); setEditingExpense(null) }}
                     balance={balance}
                     editingExpense={editingExpense}
                 />

@@ -5,7 +5,7 @@ import './TransactionList.css'
 export default function TransactionList({ expenses, onEdit, onDelete }) {
     return (
         <div className="transaction-list">
-            <h2>Transactions</h2>
+            <h2>Recent Transactions</h2>
             <div className="transaction-box">
                 {expenses.length === 0
                     ? <p className="no-transactions">No transactions!</p>
@@ -13,14 +13,10 @@ export default function TransactionList({ expenses, onEdit, onDelete }) {
                         <div key={expense.id} className="transaction-item">
                             <div className="transaction-info">
                                 <span className="transaction-title">{expense.title}</span>
-                                <span className="transaction-meta">
-                    {expense.date} • {expense.category}
-                  </span>
+                                <span className="transaction-meta">{expense.date} • {expense.category}</span>
                             </div>
                             <div className="transaction-right">
-                  <span className="transaction-amount">
-                    ₹{parseFloat(expense.price).toLocaleString()}
-                  </span>
+                                <span className="transaction-amount">₹{expense.price}</span>
                                 <button className="icon-btn edit" onClick={() => onEdit(expense)} title="Edit">
                                     <FiEdit2 />
                                 </button>
