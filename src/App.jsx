@@ -11,6 +11,26 @@ import './App.css'
 Modal.setAppElement('#root')
 
 const DEFAULT_BALANCE = 5000
+const SESSION_BOOTSTRAP_KEY = 'expense-tracker-bootstrapped'
+
+function shouldHydrateFromStorage() {
+    if (typeof window === 'undefined') return false
+
+    const navType =
+        window.performance?.getEntriesByType?.('navigation')?.[0]?.type ?? 'navigate'
+    const hasBootstrapped =
+        window.sessionStorage.getItem(SESSION_BOOTSTRAP_KEY) === 'true'
+
+    if (navType === 'reload' && hasBootstrapped) {
+        return true
+    }
+
+    // Fresh app entry should not inherit storage from a previous Cypress test.
+    window.localStorage.removeItem('walletBalance')
+    window.localStorage.removeItem('expenses')
+    window.sessionStorage.setItem(SESSION_BOOTSTRAP_KEY, 'true')
+    return false
+}
 
 const MODAL_STYLES = {
     overlay: {
@@ -33,25 +53,13 @@ const MODAL_STYLES = {
     },
 }
 
-function getNavigationType() {
-    if (typeof window === 'undefined') return 'navigate'
-
-    const navEntry = window.performance?.getEntriesByType?.('navigation')?.[0]
-    if (navEntry?.type) return navEntry.type
-
-    const legacyType = window.performance?.navigation?.type
-    if (legacyType === 1) return 'reload'
-
-    return 'navigate'
-}
-
 export default function App() {
-    const isReload = getNavigationType() === 'reload'
+    const [hydrateFromStorage] = useState(() => shouldHydrateFromStorage())
 
     const [balance, setBalance] = useState(() => {
         const saved = localStorage.getItem('walletBalance')
 
-        if (isReload && saved !== null) {
+        if (hydrateFromStorage && saved !== null) {
             const parsed = parseFloat(saved)
             return Number.isFinite(parsed) ? parsed : DEFAULT_BALANCE
         }
@@ -62,7 +70,7 @@ export default function App() {
     const [expenses, setExpenses] = useState(() => {
         const saved = localStorage.getItem('expenses')
 
-        if (isReload && saved !== null) {
+        if (hydrateFromStorage && saved !== null) {
             try {
                 const parsed = JSON.parse(saved)
                 return Array.isArray(parsed) ? parsed : []
