@@ -1,0 +1,19 @@
+.expense-trends {
+    flex: 1;
+    min-width: 260px;
+}
+
+.expense-trends h2 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    color: #fff;
+    font-style: italic;
+}
+
+.trends-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1rem;
+    color: #333;
+}

@@ -1,0 +1,46 @@
+.income-form h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 1.2rem;
+    color: #222;
+}
+
+.income-form input {
+    width: 100%;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    font-family: inherit;
+    outline: none;
+}
+
+.income-form input:focus { border-color: #f5a623; }
+
+.form-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-add-balance {
+    background: #f5a623;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.btn-cancel {
+    background: #eee;
+    color: #555;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+}
