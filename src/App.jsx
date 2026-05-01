@@ -10,6 +10,8 @@ import './App.css'
 
 Modal.setAppElement('#root')
 
+const DEFAULT_BALANCE = 5000
+
 const MODAL_STYLES = {
     overlay: {
         backgroundColor: 'rgba(0,0,0,0.55)',
@@ -31,15 +33,45 @@ const MODAL_STYLES = {
     },
 }
 
+function getNavigationType() {
+    if (typeof window === 'undefined') return 'navigate'
+
+    const navEntry = window.performance?.getEntriesByType?.('navigation')?.[0]
+    if (navEntry?.type) return navEntry.type
+
+    const legacyType = window.performance?.navigation?.type
+    if (legacyType === 1) return 'reload'
+
+    return 'navigate'
+}
+
 export default function App() {
+    const isReload = getNavigationType() === 'reload'
+
     const [balance, setBalance] = useState(() => {
         const saved = localStorage.getItem('walletBalance')
-        return saved ? parseFloat(saved) : 5000
+
+        if (isReload && saved !== null) {
+            const parsed = parseFloat(saved)
+            return Number.isFinite(parsed) ? parsed : DEFAULT_BALANCE
+        }
+
+        return DEFAULT_BALANCE
     })
 
     const [expenses, setExpenses] = useState(() => {
         const saved = localStorage.getItem('expenses')
-        return saved ? JSON.parse(saved) : []
+
+        if (isReload && saved !== null) {
+            try {
+                const parsed = JSON.parse(saved)
+                return Array.isArray(parsed) ? parsed : []
+            } catch {
+                return []
+            }
+        }
+
+        return []
     })
 
     const [incomeModalOpen, setIncomeModalOpen] = useState(false)
@@ -47,7 +79,7 @@ export default function App() {
     const [editingExpense, setEditingExpense] = useState(null)
 
     useEffect(() => {
-        localStorage.setItem('walletBalance', balance)
+        localStorage.setItem('walletBalance', String(balance))
     }, [balance])
 
     useEffect(() => {
@@ -96,7 +128,10 @@ export default function App() {
                     balance={balance}
                     totalExpenses={totalExpenses}
                     onAddIncome={() => setIncomeModalOpen(true)}
-                    onAddExpense={() => { setEditingExpense(null); setExpenseModalOpen(true) }}
+                    onAddExpense={() => {
+                        setEditingExpense(null)
+                        setExpenseModalOpen(true)
+                    }}
                 />
                 <ExpenseSummary expenses={expenses} />
             </div>
@@ -110,7 +145,6 @@ export default function App() {
                 <ExpenseTrends expenses={expenses} />
             </div>
 
-            {/* Income Modal */}
             <Modal
                 isOpen={incomeModalOpen}
                 onRequestClose={() => setIncomeModalOpen(false)}
@@ -122,16 +156,21 @@ export default function App() {
                 />
             </Modal>
 
-            {/* Expense Modal */}
             <Modal
                 isOpen={expenseModalOpen}
-                onRequestClose={() => { setExpenseModalOpen(false); setEditingExpense(null) }}
+                onRequestClose={() => {
+                    setExpenseModalOpen(false)
+                    setEditingExpense(null)
+                }}
                 style={MODAL_STYLES}
             >
                 <ExpenseForm
                     onAdd={handleAddExpense}
                     onEdit={handleEditExpense}
-                    onCancel={() => { setExpenseModalOpen(false); setEditingExpense(null) }}
+                    onCancel={() => {
+                        setExpenseModalOpen(false)
+                        setEditingExpense(null)
+                    }}
                     balance={balance}
                     editingExpense={editingExpense}
                 />
